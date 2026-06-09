@@ -5,7 +5,6 @@ import { useMarkets, useGlobalStats } from "@/features/market/hooks/useMarkets";
 import { useLivePrices } from "@/features/market/hooks/useLivePrices";
 import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -204,6 +203,30 @@ function MarketsContent() {
   // react-table instance (we pre-filter data, let it handle sorting + row model)
   const [sorting, setSorting] = useState<SortingState>([{ id: "market_cap", desc: true }]);
 
+  // Column class helper for desktop-friendly alignment + widths (numeric columns right-aligned)
+  // % + table-fixed guarantees th and virtual td cells match exactly and fill the panel.
+  // Narrow columns (rank, watch, change) get reduced px to avoid padding eating the width.
+  function getColClass(id: string) {
+    switch (id) {
+      case "rank":
+        return "w-[5%] text-center px-2";
+      case "coin":
+        return "w-[24%]";
+      case "price":
+        return "text-right tabular-nums w-[15%] pr-5";
+      case "change":
+        return "text-right tabular-nums w-[8%] px-2 pr-4";
+      case "market_cap":
+        return "text-right tabular-nums w-[19%] pr-5";
+      case "volume":
+        return "text-right tabular-nums w-[19%] pr-5";
+      case "watch":
+        return "w-[4%] text-center pl-1 pr-3";
+      default:
+        return "";
+    }
+  }
+
   const table = useReactTable({
     data: dataForTable,
     columns,
@@ -345,27 +368,32 @@ function MarketsContent() {
       <div
         ref={tableContainerRef}
         className="overflow-auto rounded-xl border bg-card"
-        style={{ height: "600px" }} // fixed height for virtualization scroll container
+        style={{ height: "600px" }}
       >
-        <Table>
-          <TableHeader>
+        <table className="w-full table-fixed border-collapse caption-bottom text-sm">
+          <TableHeader className="sticky top-0 z-10 bg-card">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                    {{
-                      asc: " ↑",
-                      desc: " ↓",
-                    }[header.column.getIsSorted() as string] ?? null}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const colId = header.column.id;
+                  const sortClass = header.column.getCanSort() ? "cursor-pointer select-none" : "";
+                  const colClass = getColClass(colId);
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={[sortClass, colClass].filter(Boolean).join(" ")}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {{
+                        asc: " ↑",
+                        desc: " ↓",
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -399,7 +427,7 @@ function MarketsContent() {
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className={getColClass(cell.column.id)}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -408,7 +436,7 @@ function MarketsContent() {
               })
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
