@@ -7,6 +7,10 @@ import { useCoinDetail } from "@/features/coin-detail/hooks/useCoinDetail";
 import { useOHLC } from "@/features/coin-detail/hooks/useOHLC";
 import { useLivePrices } from "@/features/market/hooks/useLivePrices";
 import type { OHLCPoint } from "@/features/market/schemas";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Heavy chart loaded only on client
 const PriceChart = dynamic(
@@ -57,9 +61,15 @@ export function CoinDetailClient({ id }: Props) {
 
   if (coinLoading && !coin) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-        <div className="mt-8 h-[420px] animate-pulse rounded-lg border bg-card/50" />
+      <div className="mx-auto max-w-5xl px-6 py-10 space-y-8">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-6 w-24" />
+          </div>
+        </div>
+        <Skeleton className="h-[440px] w-full rounded-lg" />
       </div>
     );
   }
@@ -95,14 +105,17 @@ export function CoinDetailClient({ id }: Props) {
                 {currentPrice ? `$${currentPrice.toLocaleString()}` : "—"}
               </span>
               {typeof change24h === "number" && (
-                <span
-                  className={`text-sm font-medium tabular-nums ${
-                    change24h >= 0 ? "price-up" : "price-down"
-                  }`}
+                <Badge
+                  variant="outline"
+                  className={
+                    change24h >= 0
+                      ? "border-emerald-500/30 text-emerald-500"
+                      : "border-red-500/30 text-red-500"
+                  }
                 >
                   {change24h >= 0 ? "+" : ""}
                   {change24h.toFixed(2)}% (24h)
-                </span>
+                </Badge>
               )}
             </div>
           </div>
@@ -122,29 +135,30 @@ export function CoinDetailClient({ id }: Props) {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="mr-2 text-sm text-muted-foreground">Chart</span>
         {TIMEFRAMES.map((tf) => (
-          <button
+          <Button
             key={tf.value}
+            variant={days === tf.value ? "default" : "outline"}
+            size="sm"
             onClick={() => setDays(tf.value)}
-            className={`rounded-md border px-3 py-1 text-sm transition-colors ${
-              days === tf.value
-                ? "border-primary bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            }`}
           >
             {tf.label}
-          </button>
+          </Button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground">
           Live updates via WS when available
         </span>
       </div>
 
-      <PriceChart
-        coinId={id}
-        data={(ohlc as OHLCPoint[] | undefined) ?? []}
-        currentPrice={currentPrice}
-        height={440}
-      />
+      <Card>
+        <CardContent className="p-4">
+          <PriceChart
+            coinId={id}
+            data={(ohlc as OHLCPoint[] | undefined) ?? []}
+            currentPrice={currentPrice}
+            height={440}
+          />
+        </CardContent>
+      </Card>
 
       <div className="mt-4 text-xs text-muted-foreground">
         Data provided by CoinGecko (proxied). Candlestick chart powered by TradingView Lightweight Charts.
