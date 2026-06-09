@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMarkets, useGlobalStats } from "@/features/market/hooks/useMarkets";
 import { useLivePrices } from "@/features/market/hooks/useLivePrices";
-import { Suspense, useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Star, StarOff } from "lucide-react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  createColumnHelper,
+  type SortingState,
+  type ColumnDef,
+} from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import type { CoinMarket } from "@/features/market/schemas";
 
 function MarketsContent() {
   const { data: markets = [], isLoading, error, dataUpdatedAt } = useMarkets({ per_page: 100, sparkline: true });
@@ -36,10 +47,6 @@ function MarketsContent() {
 
   const [search, setSearch] = useState("");
   const [filterMode, setFilterMode] = useState<"all" | "watchlist">("all");
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" }>({
-    key: "market_cap",
-    direction: "desc",
-  });
 
   // Persist watchlist
   useEffect(() => {
@@ -48,97 +55,178 @@ function MarketsContent() {
     } catch {}
   }, [watchlist]);
 
-  const toggleWatch = (id: string) => {
-    setWatchlist((prev) =>
-      prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]
-    );
-  };
-
-  // Live prices for watchlist coins (and a few defaults for demo)
-  const liveCoins = useMemo(() => {
-    const ids = new Set([...watchlist, "bitcoin", "ethereum", "solana"]);
-    return Array.from(ids);
+  // For live updates + patching into query cache (useLivePrices subscribes and calls setQueryData)
+  const liveCoinIds = useMemo(() => {
+    // Always include a few for demo + whatever is in watchlist
+    const demo = ["bitcoin", "ethereum", "solana"];
+    return Array.from(new Set([...watchlist, ...demo]));
   }, [watchlist]);
+  const live = useLivePrices(liveCoinIds); // we mainly call it for the side-effect of live patching
 
-  const live = useLivePrices(liveCoins);
-
-  // Client-side filtered + sorted data
-  const processedMarkets = useMemo(() => {
+  // Data for the table: apply search + watchlist filter (pre-filter before react-table)
+  const dataForTable = useMemo(() => {
     let result = [...markets];
 
-    // Filter by search
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.symbol.toLowerCase().includes(q)
+        (c) => c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q)
       );
     }
 
-    // Filter by watchlist
     if (filterMode === "watchlist") {
       result = result.filter((c) => watchlist.includes(c.id));
     }
 
-    // Sort (stable, handles mixed types safely)
-    result.sort((a, b) => {
-      const dir = sortConfig.direction === "asc" ? 1 : -1;
-
-      switch (sortConfig.key) {
-        case "price": {
-          const va = live[a.id] ?? a.current_price ?? 0;
-          const vb = live[b.id] ?? b.current_price ?? 0;
-          return (va - vb) * dir;
-        }
-        case "change": {
-          const va = a.price_change_percentage_24h ?? 0;
-          const vb = b.price_change_percentage_24h ?? 0;
-          return (va - vb) * dir;
-        }
-        case "market_cap": {
-          const va = a.market_cap ?? 0;
-          const vb = b.market_cap ?? 0;
-          return (va - vb) * dir;
-        }
-        case "volume": {
-          const va = a.total_volume ?? 0;
-          const vb = b.total_volume ?? 0;
-          return (va - vb) * dir;
-        }
-        case "name": {
-          const va = a.name.toLowerCase();
-          const vb = b.name.toLowerCase();
-          return va.localeCompare(vb) * dir;
-        }
-        default: {
-          const va = a.market_cap_rank ?? 9999;
-          const vb = b.market_cap_rank ?? 9999;
-          return (va - vb) * dir;
-        }
-      }
-    });
-
     return result;
-  }, [markets, search, filterMode, watchlist, live, sortConfig]);
-
-  const handleSort = (key: string) => {
-    setSortConfig((prev) =>
-      prev.key === key
-        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
-        : { key, direction: "desc" }
-    );
-  };
-
-  const getSortIndicator = (key: string) => {
-    if (sortConfig.key !== key) return null;
-    return sortConfig.direction === "asc" ? " ↑" : " ↓";
-  };
+  }, [markets, search, filterMode, watchlist]);
 
   // Last updated
   const lastUpdated = dataUpdatedAt
     ? new Date(dataUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
     : "—";
+
+  // Column definitions for react-table (enables sorting, custom cells, etc.)
+  const columnHelper = createColumnHelper<CoinMarket>();
+
+  const columns = useMemo<ColumnDef<CoinMarket, any>[]>(
+    () => [
+      columnHelper.accessor("market_cap_rank", {
+        id: "rank",
+        header: " #",
+        cell: (info) => info.getValue() ?? "—",
+        enableSorting: true,
+      }),
+      columnHelper.accessor("name", {
+        id: "coin",
+        header: "Coin",
+        cell: ({ row }) => {
+          const coin = row.original;
+          return (
+            <Link
+              href={`/coins/${coin.id}`}
+              className="flex items-center gap-3 hover:underline"
+            >
+              {coin.image && <img src={coin.image} alt="" className="h-6 w-6 rounded-full" />}
+              <div>
+                <div className="font-medium">{coin.name}</div>
+                <div className="text-xs uppercase text-muted-foreground">{coin.symbol}</div>
+              </div>
+            </Link>
+          );
+        },
+        enableSorting: true,
+      }),
+      columnHelper.accessor((row) => row.current_price, {
+        id: "price",
+        header: "Price",
+        cell: ({ row }) => {
+          const coin = row.original;
+          const price = coin.current_price;
+          const isWatched = watchlist.includes(coin.id);
+          return (
+            <>
+              ${price?.toLocaleString() ?? "—"}
+              {isWatched && (
+                <span
+                  className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
+                  title="Live via WS"
+                />
+              )}
+            </>
+          );
+        },
+        enableSorting: true,
+      }),
+      columnHelper.accessor("price_change_percentage_24h", {
+        id: "change",
+        header: "24h %",
+        cell: ({ getValue }) => {
+          const change = getValue();
+          if (change == null) return "—";
+          const isUp = change >= 0;
+          return (
+            <span className={isUp ? "price-up" : "price-down"}>
+              {isUp ? "+" : ""}
+              {change.toFixed(2)}%
+            </span>
+          );
+        },
+        enableSorting: true,
+      }),
+      columnHelper.accessor("market_cap", {
+        id: "market_cap",
+        header: "Market Cap",
+        cell: (info) =>
+          info.getValue() ? "$" + (info.getValue()! / 1e9).toFixed(1) + "B" : "—",
+        enableSorting: true,
+      }),
+      columnHelper.accessor("total_volume", {
+        id: "volume",
+        header: "Volume (24h)",
+        cell: (info) =>
+          info.getValue() ? "$" + (info.getValue()! / 1e9).toFixed(1) + "B" : "—",
+        enableSorting: true,
+      }),
+      columnHelper.display({
+        id: "watch",
+        header: "Watch",
+        cell: ({ row }) => {
+          const id = row.original.id;
+          const isWatched = watchlist.includes(id);
+          return (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                setWatchlist((prev) =>
+                  prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id]
+                );
+              }}
+              aria-label={isWatched ? "Remove from watchlist" : "Add to watchlist"}
+            >
+              {isWatched ? (
+                <Star className="h-4 w-4 fill-current text-yellow-500" />
+              ) : (
+                <StarOff className="h-4 w-4" />
+              )}
+            </Button>
+          );
+        },
+        enableSorting: false,
+      }),
+    ],
+    [watchlist]
+  );
+
+  // react-table instance (we pre-filter data, let it handle sorting + row model)
+  const [sorting, setSorting] = useState<SortingState>([{ id: "market_cap", desc: true }]);
+
+  const table = useReactTable({
+    data: dataForTable,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualSorting: false,
+  });
+
+  const { rows } = table.getRowModel();
+
+  // Virtualization
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 52, // approx row height (tune if needed)
+    overscan: 8,
+  });
 
   if (isLoading) {
     return (
@@ -249,115 +337,72 @@ function MarketsContent() {
           </div>
         </div>
         <div className="text-xs text-muted-foreground tabular-nums">
-          Last updated: {lastUpdated} • {processedMarkets.length} coins
+          Last updated: {lastUpdated} • {dataForTable.length} coins
         </div>
       </div>
 
-      {/* Polished Markets Table using shadcn + client sort/filter + watchlist */}
-      <div className="overflow-x-auto rounded-xl border bg-card">
+      {/* Virtualized + react-table powered Markets Table */}
+      <div
+        ref={tableContainerRef}
+        className="overflow-auto rounded-xl border bg-card"
+        style={{ height: "600px" }} // fixed height for virtualization scroll container
+      >
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[60px] cursor-pointer" onClick={() => handleSort("rank")}>
-                # {getSortIndicator("rank")}
-              </TableHead>
-              <TableHead className="cursor-pointer min-w-[180px]" onClick={() => handleSort("name")}>
-                Coin {getSortIndicator("name")}
-              </TableHead>
-              <TableHead className="text-right cursor-pointer" onClick={() => handleSort("price")}>
-                Price {getSortIndicator("price")}
-              </TableHead>
-              <TableHead className="text-right cursor-pointer" onClick={() => handleSort("change")}>
-                24h % {getSortIndicator("change")}
-              </TableHead>
-              <TableHead className="text-right cursor-pointer" onClick={() => handleSort("market_cap")}>
-                Market Cap {getSortIndicator("market_cap")}
-              </TableHead>
-              <TableHead className="text-right cursor-pointer" onClick={() => handleSort("volume")}>
-                Volume (24h) {getSortIndicator("volume")}
-              </TableHead>
-              <TableHead className="w-[60px] text-center">Watch</TableHead>
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {{
+                      asc: " ↑",
+                      desc: " ↓",
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
           </TableHeader>
-          <TableBody>
-            {processedMarkets.length === 0 ? (
+          <TableBody
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              position: "relative",
+            }}
+          >
+            {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   No coins match your search or filter.
                 </TableCell>
               </TableRow>
             ) : (
-              processedMarkets.slice(0, 50).map((coin, idx) => {
-                const change = coin.price_change_percentage_24h;
-                const isUp = (change ?? 0) >= 0;
-                const isWatched = watchlist.includes(coin.id);
-                const price = live[coin.id] ?? coin.current_price;
-
+              virtualizer.getVirtualItems().map((virtualRow) => {
+                const row = rows[virtualRow.index];
                 return (
-                  <TableRow key={coin.id} className="hover:bg-muted/50">
-                    <TableCell className="text-muted-foreground">
-                      {coin.market_cap_rank ?? idx + 1}
-                    </TableCell>
-                    <TableCell>
-                      <Link
-                        href={`/coins/${coin.id}`}
-                        className="flex items-center gap-3 hover:underline"
-                      >
-                        {coin.image && (
-                          <img src={coin.image} alt="" className="h-6 w-6 rounded-full" />
-                        )}
-                        <div>
-                          <div className="font-medium">{coin.name}</div>
-                          <div className="text-xs uppercase text-muted-foreground">
-                            {coin.symbol}
-                          </div>
-                        </div>
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
-                      ${price?.toLocaleString() ?? "—"}
-                      {(isWatched || ["bitcoin", "ethereum", "solana"].includes(coin.id)) && (
-                        <span
-                          className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
-                          title="Live via WS"
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell
-                      className={`text-right font-medium tabular-nums ${
-                        isUp ? "price-up" : "price-down"
-                      }`}
-                    >
-                      {change != null ? `${isUp ? "+" : ""}${change.toFixed(2)}%` : "—"}
-                    </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
-                      {coin.market_cap
-                        ? "$" + (coin.market_cap / 1e9).toFixed(1) + "B"
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
-                      {coin.total_volume
-                        ? "$" + (coin.total_volume / 1e9).toFixed(1) + "B"
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleWatch(coin.id);
-                        }}
-                        aria-label={isWatched ? "Remove from watchlist" : "Add to watchlist"}
-                      >
-                        {isWatched ? (
-                          <Star className="h-4 w-4 fill-current text-yellow-500" />
-                        ) : (
-                          <StarOff className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-muted/50"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 );
               })
@@ -367,7 +412,7 @@ function MarketsContent() {
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Data via CoinGecko proxy • Click headers to sort • Use search + Watchlist filter • Stars persist in localStorage • Live prices for watched coins
+        Data via CoinGecko proxy • Click headers to sort • Use search + Watchlist filter • Stars persist in localStorage • Live prices for watched coins • Virtualized for performance
       </p>
     </div>
   );
