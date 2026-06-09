@@ -92,6 +92,35 @@ When the user asks you to implement something substantial:
 
 The primary branch for this repo is `main` (not `master`).
 
+## Creating Pull Requests
+
+After pushing a feature branch that has clean, senior-style commits:
+
+1. **Always explicitly provide a recommended PR title and PR body** to the user.
+   - Do this even if the user only said "open a PR" or "commit and open a PR".
+   - Title should be concise and descriptive (often derived from the main `feat(...)` commit on the branch).
+   - Body should give a high-level summary of the "what" and "why", key changes, and verification performed. Synthesize from the commit messages.
+
+2. Present the title and body in clear, copy-pasteable blocks in your final response:
+   ```markdown
+   **Recommended PR Title:**
+   `feat(market): ...`
+
+   **Recommended PR Body:**
+   ...
+   ```
+
+3. Open the browser (or give direct links) to the PR creation flow:
+   - Create PR page: `https://github.com/studysoros/crypto-dashboard-grok-build/pull/new/<branch>`
+   - Compare view: `https://github.com/studysoros/crypto-dashboard-grok-build/compare/main...<branch>`
+
+4. Good PR titles are usually in the form:
+   - `feat(market): add shadcn Table + client-side search, sort and watchlist`
+   - `chore(deps): upgrade lightweight-charts to v5`
+   - Avoid generic titles like "update stuff" or "wip".
+
+5. Include a short note that the branch follows the project commit style.
+
 ## Reference
 
 This file exists so any agent (Grok Build or otherwise) can be told:
