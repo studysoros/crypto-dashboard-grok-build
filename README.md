@@ -64,12 +64,12 @@ types/ schemas/       # Shared domain + Zod
 
 **MVP (in progress):**
 - [x] Next.js 16 + TS strict + npm + core libs + providers + dark theme
-- [ ] CoinGecko proxies + Zod schemas + typed fetchers
-- [ ] TanStack Query hooks for markets/global
-- [ ] Resilient WS live prices (CoinGecko/Binance public) + query sync
-- [ ] Virtualized sortable markets table + stats cards
-- [ ] Coin detail page with lightweight-charts (candles + live)
-- [ ] Polish, tests, CI, README + ADRs
+- [x] CoinGecko proxies + Zod schemas + typed fetchers
+- [x] TanStack Query hooks for markets/global
+- [x] Resilient WS live prices (CoinGecko/Binance public) + query sync
+- [x] Markets table + stats cards (with links to detail)
+- [x] Coin detail page with lightweight-charts (candles + live + timeframes)
+- [ ] Polish, virtualized table, tests, CI, README + ADRs
 
 **Post-MVP (documented, not started):**
 - Persistent watchlist/portfolio (Supabase or equivalent)
