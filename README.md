@@ -69,7 +69,8 @@ types/ schemas/       # Shared domain + Zod
 - [x] Resilient WS live prices (CoinGecko/Binance public) + query sync
 - [x] Markets table + stats cards (with links to detail)
 - [x] Coin detail page with lightweight-charts (candles + live + timeframes)
-- [ ] Polish, virtualized table, tests, CI, README + ADRs
+- [x] Polish + shadcn/ui: Card/Table/Button/Badge/Skeleton/Input, client-side sort+search+watchlist (localStorage), skeletons, improved errors, last-updated
+- [ ] Virtualized table (TanStack Virtual), more tests, CI, full README + ADRs
 
 **Post-MVP (documented, not started):**
 - Persistent watchlist/portfolio (Supabase or equivalent)
