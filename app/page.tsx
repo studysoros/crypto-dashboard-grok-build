@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMarkets, useGlobalStats } from "@/features/market/hooks/useMarkets";
 import { useLivePrices } from "@/features/market/hooks/useLivePrices";
 import { Suspense } from "react";
@@ -71,13 +72,17 @@ function MarketsContent() {
                 <tr key={coin.id} className="border-b last:border-0 hover:bg-muted/50">
                   <td className="p-4 text-muted-foreground">{coin.market_cap_rank ?? idx + 1}</td>
                   <td className="p-4">
-                    <div className="flex items-center gap-3">
+                    <Link
+                      href={`/coins/${coin.id}`}
+                      className="flex items-center gap-3 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {coin.image && <img src={coin.image} alt="" className="h-6 w-6 rounded-full" />}
                       <div>
                         <div className="font-medium">{coin.name}</div>
                         <div className="text-xs uppercase text-muted-foreground">{coin.symbol}</div>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="p-4 text-right font-mono tabular-nums">
                     ${ (live[coin.id] ?? coin.current_price)?.toLocaleString() ?? "—" }
