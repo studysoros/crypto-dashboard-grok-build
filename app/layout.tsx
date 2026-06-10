@@ -36,9 +36,21 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider
-          attribute="class"
+          attribute="data-theme"
           defaultTheme="system"
           enableSystem
+          themes={[
+            "light",
+            "dark",
+            "midnight",
+            "nord",
+            "dracula",
+            "cyberpunk",
+            "solarized",
+            "monokai",
+            "sepia",
+            "emerald",
+          ]}
           disableTransitionOnChange
         >
           <QueryClientProviderWrapper>
