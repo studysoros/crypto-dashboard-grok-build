@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 import {
   createChart,
   CandlestickSeries,
@@ -11,6 +12,21 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { OHLCPoint } from "@/features/market/schemas";
+
+type ChartColors = {
+  textColor: string;
+  gridColor: string;
+  liveLineColor: string;
+};
+
+function getChartColors(resolvedTheme: string | undefined): ChartColors {
+  const isDark = resolvedTheme === "dark";
+  return {
+    textColor: isDark ? "hsl(0 0% 70%)" : "hsl(240 5% 35%)",
+    gridColor: isDark ? "hsl(240 3.7% 15.9%)" : "hsl(240 6% 90%)",
+    liveLineColor: isDark ? "hsl(200 80% 60%)" : "hsl(200 70% 45%)",
+  };
+}
 
 interface PriceChartProps {
   coinId: string;
@@ -25,6 +41,8 @@ export function PriceChart({ coinId, data, currentPrice, height = 420 }: PriceCh
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const liveLineRef = useRef<ISeriesApi<"Line"> | null>(null);
 
+  const { resolvedTheme } = useTheme();
+
   // Normalize OHLC from CoinGecko (time is typically ms; lightweight-charts prefers seconds for most cases)
   const normalized = (data ?? []).map(([time, open, high, low, close]) => ({
     time: Math.floor(time / 1000), // seconds
@@ -34,31 +52,34 @@ export function PriceChart({ coinId, data, currentPrice, height = 420 }: PriceCh
     close,
   }));
 
+  // Recreate chart when theme changes so colors match light/dark
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
+    const colors = getChartColors(resolvedTheme);
 
     const chart = createChart(container, {
       width: container.clientWidth,
       height,
       layout: {
         background: { color: "transparent" },
-        textColor: "hsl(0 0% 70%)",
+        textColor: colors.textColor,
       },
       grid: {
-        vertLines: { color: "hsl(240 3.7% 15.9%)" },
-        horzLines: { color: "hsl(240 3.7% 15.9%)" },
+        vertLines: { color: colors.gridColor },
+        horzLines: { color: colors.gridColor },
       },
       crosshair: {
         mode: 1, // normal
       },
       timeScale: {
-        borderColor: "hsl(240 3.7% 15.9%)",
+        borderColor: colors.gridColor,
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: "hsl(240 3.7% 15.9%)",
+        borderColor: colors.gridColor,
       },
     });
 
@@ -72,7 +93,7 @@ export function PriceChart({ coinId, data, currentPrice, height = 420 }: PriceCh
 
     // Optional live price line (horizontal-ish, updated on ticks)
     const liveLine = chart.addSeries(LineSeries, {
-      color: "hsl(200 80% 60%)",
+      color: colors.liveLineColor,
       lineWidth: 2,
       lineStyle: 2, // dashed
       crosshairMarkerVisible: false,
@@ -103,7 +124,7 @@ export function PriceChart({ coinId, data, currentPrice, height = 420 }: PriceCh
       candleSeriesRef.current = null;
       liveLineRef.current = null;
     };
-  }, [coinId, height]); // recreate on coin change
+  }, [coinId, height, resolvedTheme]); // recreate on coin or theme change
 
   // Update data when OHLC changes (timeframe switch)
   useEffect(() => {
