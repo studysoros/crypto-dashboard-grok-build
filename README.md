@@ -10,7 +10,7 @@ Production intent from day one. Built with modern 2026 best practices for data-h
 
 - **Next.js 16** (App Router, Turbopack, React 19) + TypeScript (strict)
 - **npm** (as requested) + future npm workspaces path documented
-- **Tailwind 4 + shadcn/ui** (light + dark themes, accessible)
+- **Tailwind 4 + shadcn/ui** (10 unique themes + System via data-theme + CSS vars, accessible)
 - **TanStack Query** (server state, caching, background sync)
 - **Zustand** (light client state)
 - **lightweight-charts** (TradingView — financial candlesticks + streaming)
@@ -63,7 +63,7 @@ types/ schemas/       # Shared domain + Zod
 ## Current Status & Roadmap
 
 **MVP (in progress):**
-- [x] Next.js 16 + TS strict + npm + core libs + providers + light/dark theme toggle (system aware)
+- [x] Next.js 16 + TS strict + npm + core libs + providers + 10 unique themes + System popup (data-theme, fully variable-driven, system aware)
 - [x] CoinGecko proxies + Zod schemas + typed fetchers
 - [x] TanStack Query hooks for markets/global
 - [x] Resilient WS live prices (CoinGecko/Binance public) + query sync
