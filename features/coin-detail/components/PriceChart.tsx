@@ -12,21 +12,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { OHLCPoint } from "@/features/market/schemas";
-
-type ChartColors = {
-  textColor: string;
-  gridColor: string;
-  liveLineColor: string;
-};
-
-function getChartColors(resolvedTheme: string | undefined): ChartColors {
-  const isDark = resolvedTheme === "dark";
-  return {
-    textColor: isDark ? "hsl(0 0% 70%)" : "hsl(240 5% 35%)",
-    gridColor: isDark ? "hsl(240 3.7% 15.9%)" : "hsl(240 6% 90%)",
-    liveLineColor: isDark ? "hsl(200 80% 60%)" : "hsl(200 70% 45%)",
-  };
-}
+import { getChartColors } from "@/lib/themes";
 
 interface PriceChartProps {
   coinId: string;
@@ -52,7 +38,8 @@ export function PriceChart({ coinId, data, currentPrice, height = 420 }: PriceCh
     close,
   }));
 
-  // Recreate chart when theme changes so colors match light/dark
+  // Recreate chart when theme changes so colors match the active palette
+  // (supports 10 unique themes + system resolution)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -83,6 +70,8 @@ export function PriceChart({ coinId, data, currentPrice, height = 420 }: PriceCh
       },
     });
 
+    // Conventional financial candle colors are kept for readability across themes.
+    // A few themes (e.g. emerald, cyberpunk) may feel slightly different via live line only.
     const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: "hsl(142.1 76.2% 36.3%)",
       downColor: "hsl(0 84.2% 60.2%)",
