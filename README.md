@@ -90,11 +90,17 @@ See the detailed **Verification Plan** section in the session plan file.
 
 ## Contributing / Philosophy
 
-This is intended as a senior portfolio/production-grade codebase:
+This is intended as a **senior portfolio/production-grade codebase**.
+
+**All contributors and AI agents must follow:**
+- `docs/coding-style.md` — architectural patterns, state management, data layer, performance, etc.
+- `docs/commit-style.md` — how we break work into clean, reviewable commits.
+
+Key expectations:
 - Type safety and clear boundaries first
-- Performance for 1000+ coins and live updates
-- Resilient to flaky public APIs
-- Easy to extend (portfolio, alerts, multi-chain)
+- Performance for 1000+ coins and live updates (virtualization, cache patching, etc.)
+- Resilient to flaky public APIs (proxies + proper error handling)
+- Easy to extend (portfolio, alerts, multi-chain, on-chain data)
 
 Questions or scope changes? Update the plan or discuss before large refactors.
 

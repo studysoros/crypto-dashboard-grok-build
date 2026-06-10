@@ -21,3 +21,21 @@ Key points:
 - History should tell a clear story and remain useful for review, blame, and onboarding.
 
 Always reference `docs/commit-style.md` when the user asks you to implement features or help with commits.
+
+## Coding Style (Senior-Level Code)
+
+This project demands **senior-level code** — maintainable, scalable, well-structured, and a pleasure to work on months later.
+
+**Read and follow `docs/coding-style.md` for all implementation work.**
+
+Key expectations:
+- Feature-sliced architecture (vertical slices under `features/`, shared code in `lib/`).
+- TanStack Query for all server state + cache-patching pattern for real-time updates.
+- Zod schemas as the source of truth for external data + strict TypeScript.
+- Resilient real-time handling (WS with reconnect + fallback).
+- Performance by default (virtualization for lists, proper query caching, client-only heavy components).
+- shadcn/ui + Tailwind as the UI foundation.
+- Clear separation: data access → state/hooks → presentation.
+- Code should be easy to test (even when tests are added later).
+
+Always reference `docs/coding-style.md` when writing or refactoring code.
