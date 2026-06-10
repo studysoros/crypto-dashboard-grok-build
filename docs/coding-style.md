@@ -84,7 +84,7 @@ All agents (Grok Build, Claude, etc.) and human contributors must follow these p
 ## Technology-Specific Conventions
 
 - **Next.js 16 (App Router)**: Use Server Components by default. Move `'use client'` as deep as possible. Route handlers for anything that needs to be proxied or cached at the edge.
-- **shadcn/ui + Tailwind v4**: Use the design system. Dark-first (crypto domain). Consistent spacing, typography, and color tokens.
+- **shadcn/ui + Tailwind v4**: Use the design system. Supports light + dark (zinc base). Consistent spacing, typography, and color tokens. Dark is the primary crypto aesthetic.
 - **API Proxies**: All external calls go through `app/api/crypto/*` routes. The client never talks directly to CoinGecko/Binance/etc. from the browser.
 - **Local Persistence**: Use `localStorage` + Zustand (or a small custom hook) only for non-critical UI preferences (watchlist, column visibility, last selected timeframe). Never for source-of-truth data.
 

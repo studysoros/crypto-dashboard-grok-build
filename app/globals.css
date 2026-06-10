@@ -7,7 +7,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* shadcn/ui + crypto dashboard dark-first theme (zinc base) */
+/* shadcn/ui + crypto dashboard theme (zinc base, supports light + dark) */
 :root {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
