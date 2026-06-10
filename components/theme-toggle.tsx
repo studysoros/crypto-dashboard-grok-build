@@ -2,18 +2,15 @@
 
 import * as React from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const THEME_OPTIONS = [
-  { value: "light" as const, label: "Light", Icon: Sun },
-  { value: "dark" as const, label: "Dark", Icon: Moon },
-  { value: "system" as const, label: "System", Icon: Monitor },
-];
-
-type ThemeValue = (typeof THEME_OPTIONS)[number]["value"];
+import {
+  THEMES,
+  getThemeConfig,
+  type ThemeId,
+} from "@/lib/themes";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { setTheme, theme, resolvedTheme } = useTheme();
@@ -65,19 +62,21 @@ export function ThemeToggle({ className }: { className?: string }) {
         disabled
         aria-label="Theme settings"
       >
-        <Monitor className="h-4 w-4" />
+        <Check className="h-4 w-4" />
       </Button>
     );
   }
 
-  const currentSetting = (theme ?? "system") as ThemeValue;
+  const currentSetting = (theme ?? "system") as ThemeId;
 
-  // Show the actual applied theme icon on the button (useful when "system" is selected)
-  const effectiveTheme = currentSetting === "system" ? resolvedTheme : currentSetting;
-  const TriggerIcon =
-    effectiveTheme === "light" ? Sun : effectiveTheme === "dark" ? Moon : Monitor;
+  // Determine which icon to show on the trigger button.
+  // For "system" we show the icon of the actually resolved theme for visual clarity.
+  const effectiveId =
+    currentSetting === "system" ? (resolvedTheme as ThemeId | undefined) : currentSetting;
+  const triggerConfig = getThemeConfig(effectiveId);
+  const TriggerIcon = triggerConfig.Icon;
 
-  const handleSelect = (value: ThemeValue) => {
+  const handleSelect = (value: ThemeId) => {
     setTheme(value);
     setOpen(false);
   };
@@ -98,35 +97,44 @@ export function ThemeToggle({ className }: { className?: string }) {
       </Button>
 
       {open && (
-        <div
-          role="menu"
-          aria-label="Theme"
-          className="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md"
-        >
-          <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-            Theme
+        <>
+          {/* Solid backdrop so the theme popup feels like a modal (page background is no longer "transparent" behind it) */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+
+          <div
+            role="menu"
+            aria-label="Theme"
+            className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-md border bg-[hsl(var(--popover))] text-popover-foreground shadow-2xl ring-1 ring-border"
+          >
+            <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+              Theme
+            </div>
+            <div className="py-1">
+              {THEMES.map(({ id, label, Icon }) => {
+                const isActive = currentSetting === id;
+                return (
+                  <button
+                    key={id}
+                    role="menuitem"
+                    onClick={() => handleSelect(id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
+                      isActive && "bg-accent text-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="flex-1 text-left">{label}</span>
+                    {isActive && <Check className="h-3.5 w-3.5" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="py-1">
-            {THEME_OPTIONS.map(({ value, label, Icon }) => {
-              const isActive = currentSetting === value;
-              return (
-                <button
-                  key={value}
-                  role="menuitem"
-                  onClick={() => handleSelect(value)}
-                  className={cn(
-                    "flex w-full items-center gap-2 px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                    isActive && "bg-accent text-accent-foreground"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1 text-left">{label}</span>
-                  {isActive && <Check className="h-3.5 w-3.5" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
