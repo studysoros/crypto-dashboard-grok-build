@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // Heavy chart loaded only on client
 const PriceChart = dynamic(
@@ -83,7 +84,10 @@ export function CoinDetailClient({ id }: Props) {
         >
           ← Back to Markets
         </Link>
-        <div className="text-xs text-muted-foreground">ID: {id}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-muted-foreground">ID: {id}</div>
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Header */}
@@ -167,7 +171,7 @@ export function CoinDetailClient({ id }: Props) {
 
       {/* Simple description / extra info */}
       {coin?.description?.en && (
-        <div className="prose prose-invert mt-8 max-w-none text-sm leading-relaxed text-muted-foreground">
+        <div className="mt-8 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           <p>{coin.description.en.replace(/<[^>]+>/g, "").slice(0, 420)}...</p>
         </div>
       )}

@@ -14,9 +14,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Star, StarOff } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   useReactTable,
   getCoreRowModel,
@@ -455,7 +455,10 @@ export default function CryptoDashboard() {
             <div className="h-8 w-8 rounded bg-primary" />
             <span className="text-xl font-semibold tracking-tight">Crypto Dashboard</span>
           </div>
-          <div className="text-sm text-muted-foreground">Real-time • Public data (MVP)</div>
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-muted-foreground">Real-time • Public data (MVP)</div>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
