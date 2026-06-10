@@ -7,8 +7,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* shadcn/ui + crypto dashboard theme (zinc base, supports light + dark) */
-:root {
+/* 
+  shadcn/ui + crypto dashboard multi-theme system.
+  Uses data-theme attribute (set by next-themes) for arbitrary named themes.
+  Each [data-theme="..."] block supplies the complete set of design tokens.
+  "System" resolves to one of the explicit themes at runtime.
+*/
+
+/* ---------- Base tokens (light) ---------- */
+[data-theme="light"] {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
@@ -34,9 +41,14 @@
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
+
+  /* semantic for price direction & status (overridable per theme) */
+  --success: 142.1 76.2% 36.3%;
+  --danger: 0 84.2% 60.2%;
 }
 
-.dark {
+/* ---------- Dark (Classic) — the original crypto zinc dark ---------- */
+[data-theme="dark"] {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
   --card: 240 10% 3.9%;
@@ -61,6 +73,265 @@
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
+
+  --success: 142.1 76.2% 36.3%;
+  --danger: 0 84.2% 60.2%;
+}
+
+/* ---------- Midnight (OLED) — deepest black, crisp, battery friendly ---------- */
+[data-theme="midnight"] {
+  --background: 0 0% 2.5%;
+  --foreground: 0 0% 96%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 96%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 10%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 64%;
+  --accent: 0 0% 12%;
+  --accent-foreground: 0 0% 96%;
+  --destructive: 0 70% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 12%;
+  --input: 0 0% 12%;
+  --ring: 0 0% 80%;
+  --radius: 0.5rem;
+  --chart-1: 220 70% 55%;
+  --chart-2: 160 60% 50%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+
+  --success: 142 70% 42%;
+  --danger: 0 75% 55%;
+}
+
+/* ---------- Nord — cool, calm, low-saturation Arctic ---------- */
+[data-theme="nord"] {
+  --background: 220 16% 18%;
+  --foreground: 220 10% 92%;
+  --card: 220 16% 22%;
+  --card-foreground: 220 10% 92%;
+  --popover: 220 16% 22%;
+  --popover-foreground: 220 10% 92%;
+  --primary: 220 10% 94%;
+  --primary-foreground: 220 16% 18%;
+  --secondary: 220 16% 28%;
+  --secondary-foreground: 220 10% 92%;
+  --muted: 220 16% 26%;
+  --muted-foreground: 220 8% 65%;
+  --accent: 220 16% 32%;
+  --accent-foreground: 220 10% 94%;
+  --destructive: 0 60% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 16% 30%;
+  --input: 220 16% 30%;
+  --ring: 210 80% 70%;
+  --radius: 0.5rem;
+  --chart-1: 210 60% 65%;
+  --chart-2: 180 50% 55%;
+  --chart-3: 30 70% 60%;
+  --chart-4: 260 55% 65%;
+  --chart-5: 340 60% 60%;
+
+  --success: 145 45% 55%;
+  --danger: 0 65% 58%;
+}
+
+/* ---------- Dracula — purple/pink neon on dark ---------- */
+[data-theme="dracula"] {
+  --background: 231 15% 12%;
+  --foreground: 60 30% 96%;
+  --card: 231 15% 16%;
+  --card-foreground: 60 30% 96%;
+  --popover: 231 15% 16%;
+  --popover-foreground: 60 30% 96%;
+  --primary: 265 80% 78%;
+  --primary-foreground: 231 15% 12%;
+  --secondary: 231 15% 22%;
+  --secondary-foreground: 60 30% 96%;
+  --muted: 231 15% 20%;
+  --muted-foreground: 60 20% 68%;
+  --accent: 231 15% 26%;
+  --accent-foreground: 60 30% 96%;
+  --destructive: 0 80% 65%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 231 15% 24%;
+  --input: 231 15% 24%;
+  --ring: 265 80% 78%;
+  --radius: 0.5rem;
+  --chart-1: 265 80% 70%;
+  --chart-2: 180 70% 55%;
+  --chart-3: 30 85% 60%;
+  --chart-4: 320 70% 65%;
+  --chart-5: 0 80% 65%;
+
+  --success: 135 65% 55%;
+  --danger: 0 80% 65%;
+}
+
+/* ---------- Cyberpunk — aggressive neon magenta + cyan ---------- */
+[data-theme="cyberpunk"] {
+  --background: 240 8% 4%;
+  --foreground: 0 0% 95%;
+  --card: 240 8% 7%;
+  --card-foreground: 0 0% 95%;
+  --popover: 240 8% 7%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 320 100% 70%;
+  --primary-foreground: 0 0% 10%;
+  --secondary: 180 30% 12%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 240 8% 11%;
+  --muted-foreground: 0 0% 68%;
+  --accent: 320 80% 18%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 90% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 8% 14%;
+  --input: 240 8% 14%;
+  --ring: 180 100% 65%;
+  --radius: 0.5rem;
+  --chart-1: 320 100% 65%;
+  --chart-2: 180 100% 60%;
+  --chart-3: 45 95% 65%;
+  --chart-4: 280 90% 65%;
+  --chart-5: 0 90% 60%;
+
+  --success: 160 90% 55%;
+  --danger: 0 95% 60%;
+}
+
+/* ---------- Solarized Dark — famous low-contrast balanced palette ---------- */
+[data-theme="solarized"] {
+  --background: 42 10% 15%;
+  --foreground: 42 15% 75%;
+  --card: 42 10% 18%;
+  --card-foreground: 42 15% 78%;
+  --popover: 42 10% 18%;
+  --popover-foreground: 42 15% 78%;
+  --primary: 42 15% 85%;
+  --primary-foreground: 42 10% 15%;
+  --secondary: 42 10% 24%;
+  --secondary-foreground: 42 15% 78%;
+  --muted: 42 10% 22%;
+  --muted-foreground: 42 10% 58%;
+  --accent: 42 10% 28%;
+  --accent-foreground: 42 15% 85%;
+  --destructive: 1 60% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 42 10% 26%;
+  --input: 42 10% 26%;
+  --ring: 200 70% 55%;
+  --radius: 0.5rem;
+  --chart-1: 200 70% 55%;
+  --chart-2: 180 55% 50%;
+  --chart-3: 35 75% 55%;
+  --chart-4: 260 50% 60%;
+  --chart-5: 1 60% 55%;
+
+  --success: 145 50% 50%;
+  --danger: 1 60% 55%;
+}
+
+/* ---------- Monokai — rich dark with bright warm accents ---------- */
+[data-theme="monokai"] {
+  --background: 70 8% 10%;
+  --foreground: 60 15% 94%;
+  --card: 70 8% 13%;
+  --card-foreground: 60 15% 94%;
+  --popover: 70 8% 13%;
+  --popover-foreground: 60 15% 94%;
+  --primary: 35 90% 65%;
+  --primary-foreground: 70 8% 10%;
+  --secondary: 70 8% 18%;
+  --secondary-foreground: 60 15% 94%;
+  --muted: 70 8% 16%;
+  --muted-foreground: 60 10% 68%;
+  --accent: 70 8% 22%;
+  --accent-foreground: 60 15% 94%;
+  --destructive: 0 85% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 70 8% 20%;
+  --input: 70 8% 20%;
+  --ring: 35 90% 65%;
+  --radius: 0.5rem;
+  --chart-1: 35 90% 60%;
+  --chart-2: 160 70% 55%;
+  --chart-3: 280 70% 65%;
+  --chart-4: 45 95% 65%;
+  --chart-5: 0 85% 60%;
+
+  --success: 135 70% 52%;
+  --danger: 0 85% 60%;
+}
+
+/* ---------- Sepia — warm, paper-like light (reduced blue light) ---------- */
+[data-theme="sepia"] {
+  --background: 35 25% 96%;
+  --foreground: 30 15% 22%;
+  --card: 35 25% 98%;
+  --card-foreground: 30 15% 22%;
+  --popover: 35 25% 98%;
+  --popover-foreground: 30 15% 22%;
+  --primary: 25 20% 18%;
+  --primary-foreground: 35 25% 96%;
+  --secondary: 35 20% 90%;
+  --secondary-foreground: 30 15% 22%;
+  --muted: 35 20% 88%;
+  --muted-foreground: 30 12% 48%;
+  --accent: 35 18% 84%;
+  --accent-foreground: 30 15% 22%;
+  --destructive: 5 70% 50%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 35 18% 82%;
+  --input: 35 18% 82%;
+  --ring: 25 20% 30%;
+  --radius: 0.5rem;
+  --chart-1: 25 45% 45%;
+  --chart-2: 180 40% 40%;
+  --chart-3: 35 55% 48%;
+  --chart-4: 300 35% 50%;
+  --chart-5: 5 70% 50%;
+
+  --success: 130 45% 38%;
+  --danger: 5 70% 50%;
+}
+
+/* ---------- Emerald — dark with strong "money" green accent ---------- */
+[data-theme="emerald"] {
+  --background: 150 8% 6%;
+  --foreground: 0 0% 95%;
+  --card: 150 8% 9%;
+  --card-foreground: 0 0% 95%;
+  --popover: 150 8% 9%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 145 70% 52%;
+  --primary-foreground: 150 8% 6%;
+  --secondary: 150 8% 14%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 150 8% 12%;
+  --muted-foreground: 0 0% 66%;
+  --accent: 145 45% 18%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 150 8% 16%;
+  --input: 150 8% 16%;
+  --ring: 145 70% 52%;
+  --radius: 0.5rem;
+  --chart-1: 145 70% 48%;
+  --chart-2: 200 60% 55%;
+  --chart-3: 35 80% 58%;
+  --chart-4: 280 60% 60%;
+  --chart-5: 0 75% 55%;
+
+  --success: 145 75% 48%;
+  --danger: 0 75% 55%;
 }
 
 body {
@@ -69,12 +340,12 @@ body {
   font-family: var(--font-geist-sans);
 }
 
-/* Crypto dashboard utilities */
+/* Crypto dashboard utilities — now driven by per-theme tokens */
 .price-up {
-  color: hsl(142.1 76.2% 36.3%);
+  color: hsl(var(--success));
 }
 .price-down {
-  color: hsl(0 84.2% 60.2%);
+  color: hsl(var(--danger));
 }
 .table-row-hover:hover {
   background: hsl(var(--muted) / 0.5);
